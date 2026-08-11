@@ -17,7 +17,8 @@ import {
   Smartphone,
   CheckCircle,
 } from "lucide-react";
-import { MeshCard } from "@/components/ui/mesh-card";
+import { GlassCard } from "@/components/ui/glass-card";
+import type { GlassAccent } from "@/components/ui/glass-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SectionGlow } from "@/components/ui/section-glow";
 import {
@@ -237,17 +238,6 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[number] }) {
   const { ref, hovered, rotateX, rotateY, onMouseMove, onMouseEnter, onMouseLeave } =
     useTilt(tiltEnabled, 10);
 
-  /* Gradient border — faint accent tint at rest, brighter + fuller on hover */
-  const borderGradient = hovered
-    ? `linear-gradient(180deg, ${feature.accent.hex}cc, ${feature.accent.hex}33 45%, transparent 72%)`
-    : `linear-gradient(180deg, ${feature.accent.hex}52, rgba(255,255,255,0.06) 42%, transparent 75%)`;
-
-  /* Multi-layer shadows: tight dark grounding + soft accent glow, intensified
-     on hover (this is what makes the card feel like it's floating with light) */
-  const cardShadow = hovered
-    ? `0 1px 2px rgba(0,0,0,0.6), 0 12px 32px -12px rgba(0,0,0,0.7), 0 0 56px -10px ${feature.accent.glow}`
-    : `0 1px 2px rgba(0,0,0,0.5), 0 6px 20px -12px rgba(0,0,0,0.6), 0 0 34px -18px ${feature.accent.glow}`;
-
   return (
     <motion.div
       ref={ref}
@@ -260,74 +250,93 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[number] }) {
       style={{ rotateX, rotateY, transformPerspective: 800 }}
       className="group relative h-full will-change-transform"
     >
-      {/* Gradient border shell */}
-      <div
-        className="relative h-full rounded-3xl p-px transition-shadow duration-300"
-        style={{ background: borderGradient, boxShadow: cardShadow }}
-      >
-        {/* Card body — layered translucent gradient (light from above) */}
-        <div className="relative h-full overflow-hidden rounded-[calc(1.5rem-1px)] bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_45%,rgba(255,255,255,0))]">
-          {/* Top inner glow — thin gradient line, light hitting the card */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-4 top-0 h-px"
-            style={{
-              background: `linear-gradient(90deg, transparent, ${feature.accent.hex}59, transparent)`,
-            }}
-          />
-          {/* Grain / noise overlay */}
-          <div aria-hidden className="noise-overlay pointer-events-none absolute inset-0" />
-
-          {/* Content */}
-          <div className="relative flex h-full flex-col p-8">
-            {/* Icon badge with soft glow behind it */}
-            <div className="relative mb-7 inline-flex h-14 w-14 items-center justify-center">
-              <div
-                aria-hidden
-                className="absolute -inset-2.5 rounded-2xl opacity-60 blur-lg transition-opacity duration-300 group-hover:opacity-100"
-                style={{ background: feature.accent.badgeGlow }}
-              />
-              <div
-                className={`relative inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${feature.accent.bg} ${feature.accent.icon} ring-1 ring-white/10 ${feature.accent.ring} transition-colors duration-300`}
-              >
-                <motion.div
-                  animate={
-                    !reduce
-                      ? { scale: hovered ? 1.12 : 1, rotate: hovered ? -6 : 0 }
-                      : undefined
-                  }
-                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                >
-                  <Icon className="h-7 w-7" />
-                </motion.div>
-              </div>
-            </div>
-            <h3 className="text-xl font-bold tracking-tight text-white">
-              {feature.title}
-            </h3>
-            <p className="mt-3 text-sm leading-relaxed text-slate-400">{feature.text}</p>
-          </div>
-        </div>
-      </div>
+      <GlassCard
+        accent={feature.accent}
+        hovered={hovered}
+        icon={<Icon className="h-7 w-7" />}
+        iconClassName={`${feature.accent.icon} ${feature.accent.ring}`}
+        title={feature.title}
+        description={feature.text}
+      />
     </motion.div>
   );
 }
 
 function Features() {
   const sectionRef = useRef<HTMLElement>(null);
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
   /* Content and the heading glow drift at different speeds for layered depth */
   const contentY = useSectionParallax(sectionRef, [40, -40]);
   const orbY = useSectionParallax(sectionRef, [-20, 20]);
+
+  /* Lazy-load the background video only when this section nears the viewport
+     (IntersectionObserver) — it never competes with the hero's initial paint
+     or the robot hero video above. */
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    if (!("IntersectionObserver" in window)) {
+      setVideoSrc("/videos/robot-working-1.mp4");
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setVideoSrc("/videos/robot-working-1.mp4");
+            observer.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: "200px 0px", threshold: 0 }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <section
       id="features"
       ref={sectionRef}
-      className="relative overflow-hidden bg-background py-24 sm:py-32"
+      className="relative overflow-hidden py-24 sm:py-32"
     >
+      {/* Background video — full-bleed, sits behind all content (z below) */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="none"
+          poster="/videos/robot-working-1-poster.jpg"
+          className="absolute inset-0 h-full w-full object-cover"
+        >
+          {videoSrc && <source src={videoSrc} type="video/mp4" />}
+        </video>
+      </div>
+
+      {/* Dark overlay — video stays visible but text/cards stay readable */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/45 to-black/70"
+      />
+
+      {/* Edge fades — blend the video seamlessly into the robot-hero section
+          above and the showcase section below (no harsh cut lines) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black to-transparent"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent"
+      />
+
       <SectionGlow y={orbY} variant="indigo" />
-      {/* Faint mesh + grid for background depth (barely visible) */}
-      <div aria-hidden className="section-mesh pointer-events-none absolute inset-0" />
 
       <motion.div
         style={{ y: contentY }}
@@ -429,48 +438,156 @@ const SHOWCASE_ITEMS = [
   },
 ];
 
+/* One showcase card — same tilt + glass language as the Feature cards, but
+   reading its accent from the two-color `theme` object and keeping the
+   "Learn more →" arrow that slides on hover. */
+function ShowcaseCard({ item }: { item: (typeof SHOWCASE_ITEMS)[number] }) {
+  const reduce = useReducedMotion();
+  const hoverCapable = useIsHoverCapable();
+  const tiltEnabled = hoverCapable && !reduce;
+
+  const { ref, hovered, rotateX, rotateY, onMouseMove, onMouseEnter, onMouseLeave } =
+    useTilt(tiltEnabled, 8);
+
+  const accent: GlassAccent = {
+    hex: item.theme.primary,
+    glow: item.theme.glow,
+    /* Hex + alpha suffix → rgba, works in every modern browser */
+    badgeGlow: `${item.theme.glow}45`,
+    tint2: item.theme.secondary,
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      variants={reduce ? fadeOnlyVariants : cardVariants}
+      onMouseMove={onMouseMove}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      whileHover={reduce ? undefined : { y: -4 }}
+      whileTap={reduce ? undefined : { scale: 0.98 }}
+      style={{ rotateX, rotateY, transformPerspective: 900 }}
+      className="group relative h-full will-change-transform"
+    >
+      <GlassCard accent={accent} hovered={hovered} icon={item.icon} title={item.title} description={item.description}>
+        <a
+          href="#contact"
+          className="group/link mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
+        >
+          Learn more
+          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/link:translate-x-1" />
+        </a>
+      </GlassCard>
+    </motion.div>
+  );
+}
+
 function Showcase() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const contentY = useSectionParallax(sectionRef, [40, -40]);
+  const orbY = useSectionParallax(sectionRef, [-20, 20]);
+
+  /* Lazy-load the background video when the section nears the viewport. */
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    if (!("IntersectionObserver" in window)) {
+      setVideoSrc("/videos/robot-presenting.mp4");
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setVideoSrc("/videos/robot-presenting.mp4");
+            observer.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: "200px 0px", threshold: 0 }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
       id="showcase"
-      className="relative border-y border-white/10 bg-white/[0.02] py-24 sm:py-32"
+      ref={sectionRef}
+      className="relative overflow-hidden py-24 sm:py-32"
     >
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <Reveal className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
-          <div className="max-w-xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-fuchsia-400">
-              Showcase
-            </p>
-            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
-              Work that speaks for itself
-            </h2>
-            <p className="mt-4 text-base text-slate-400 sm:text-lg">
-              A selection of interfaces and experiences crafted with the same
-              care we bring to every project.
-            </p>
-          </div>
-          <a
-            href="#contact"
-            className="group inline-flex items-center gap-2 text-sm font-semibold text-indigo-300 transition-colors hover:text-indigo-200"
-          >
-            Start your project
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </a>
-        </Reveal>
-
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {SHOWCASE_ITEMS.map((item, i) => (
-            <Reveal key={item.title} delay={(i % 3) * 0.08}>
-              <MeshCard
-                theme={item.theme}
-                icon={item.icon}
-                title={item.title}
-                description={item.description}
-              />
-            </Reveal>
-          ))}
-        </div>
+      {/* Background video — full-bleed, behind all content */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="none"
+          poster="/videos/robot-presenting-poster.jpg"
+          className="absolute inset-0 h-full w-full object-cover"
+        >
+          {videoSrc && <source src={videoSrc} type="video/mp4" />}
+        </video>
       </div>
+
+      {/* Dark overlay — same density as Features so the two sections read as
+          one continuous rhythm (no jarring brightness jump) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/45 to-black/70"
+      />
+
+      {/* Edge fades — blend into Features above and Testimonials below */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black to-transparent"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent"
+      />
+
+      <SectionGlow y={orbY} variant="fuchsia" />
+
+      <motion.div
+        style={{ y: contentY }}
+        className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8"
+      >
+        <SectionHeading
+          eyebrow="Showcase"
+          eyebrowClassName="text-fuchsia-400"
+          title="Work that speaks for itself"
+          subtext="A selection of interfaces and experiences crafted with the same care we bring to every project."
+          className="mx-auto max-w-2xl text-center"
+          action={
+            <a
+              href="#contact"
+              className="group inline-flex items-center gap-2 text-sm font-semibold text-indigo-300 transition-colors hover:text-indigo-200"
+            >
+              Start your project
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </a>
+          }
+        />
+
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.15 }}
+          className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {SHOWCASE_ITEMS.map((item) => (
+            <ShowcaseCard key={item.title} item={item} />
+          ))}
+        </motion.div>
+      </motion.div>
     </section>
   );
 }

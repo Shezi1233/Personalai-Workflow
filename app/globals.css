@@ -336,6 +336,40 @@
   background-size: 100% 100%, 100% 100%, 56px 56px, 56px 56px;
 }
 
+/* Glassmorphism surface — frosted panel used by the Features cards over the
+   background video. backdrop-blur is what makes the video "swirl" through the
+   glass; on touch devices (where large blurs can jank the GPU and the video
+   already provides motion) we fall back to a slightly more opaque translucent
+   white so text stays readable without the blur cost. */
+.glass-surface {
+  background-color: rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+}
+
+.glass-surface:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Keep the frosted blur on desktop/hover-capable devices; drop it on touch
+   and swap in a stronger fill for readability. */
+@media (hover: hover) and (pointer: fine) {
+  .glass-surface {
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+  .glass-surface:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .glass-surface {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background-color: rgba(15, 18, 30, 0.72);
+  }
+}
+
 /* Respect users who prefer reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .fade-in,
