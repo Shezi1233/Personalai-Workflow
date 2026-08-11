@@ -20,6 +20,7 @@ import {
 import { GlassCard } from "@/components/ui/glass-card";
 import type { GlassAccent } from "@/components/ui/glass-card";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { BackgroundVideo } from "@/components/ui/background-video";
 import { SectionGlow } from "@/components/ui/section-glow";
 import {
   cardVariants,
@@ -264,39 +265,9 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[number] }) {
 
 function Features() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [videoSrc, setVideoSrc] = useState<string | null>(null);
   /* Content and the heading glow drift at different speeds for layered depth */
   const contentY = useSectionParallax(sectionRef, [40, -40]);
   const orbY = useSectionParallax(sectionRef, [-20, 20]);
-
-  /* Lazy-load the background video only when this section nears the viewport
-     (IntersectionObserver) — it never competes with the hero's initial paint
-     or the robot hero video above. */
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    if (!("IntersectionObserver" in window)) {
-      setVideoSrc("/videos/robot-working-1.mp4");
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setVideoSrc("/videos/robot-working-1.mp4");
-            observer.disconnect();
-            break;
-          }
-        }
-      },
-      { rootMargin: "200px 0px", threshold: 0 }
-    );
-
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
 
   return (
     <section
@@ -304,25 +275,27 @@ function Features() {
       ref={sectionRef}
       className="relative overflow-hidden py-24 sm:py-32"
     >
-      {/* Background video — full-bleed, sits behind all content (z below) */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="none"
+      {/* Background video — full-bleed on md+, a fixed-height full-width stage
+          on mobile so the whole 10s scene stays in frame instead of being
+          cropped to a thin strip by object-cover on a tall portrait section */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[55vh] md:inset-0 md:h-full"
+      >
+        <BackgroundVideo
+          src="/videos/robot-working-1.mp4"
           poster="/videos/robot-working-1-poster.jpg"
-          className="absolute inset-0 h-full w-full object-cover"
-        >
-          {videoSrc && <source src={videoSrc} type="video/mp4" />}
-        </video>
+          className="absolute inset-0 h-full w-full object-cover object-[50%_45%]"
+        />
+        {/* Mobile-only bottom fade — blends the video stage into the dark
+            section below (no hard cut at the 55vh boundary) */}
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent md:hidden" />
       </div>
 
       {/* Dark overlay — video stays visible but text/cards stay readable */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/45 to-black/70"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/55"
       />
 
       {/* Edge fades — blend the video seamlessly into the robot-hero section
@@ -484,36 +457,8 @@ function ShowcaseCard({ item }: { item: (typeof SHOWCASE_ITEMS)[number] }) {
 
 function Showcase() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const contentY = useSectionParallax(sectionRef, [40, -40]);
   const orbY = useSectionParallax(sectionRef, [-20, 20]);
-
-  /* Lazy-load the background video when the section nears the viewport. */
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    if (!("IntersectionObserver" in window)) {
-      setVideoSrc("/videos/robot-presenting.mp4");
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setVideoSrc("/videos/robot-presenting.mp4");
-            observer.disconnect();
-            break;
-          }
-        }
-      },
-      { rootMargin: "200px 0px", threshold: 0 }
-    );
-
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
 
   return (
     <section
@@ -521,26 +466,27 @@ function Showcase() {
       ref={sectionRef}
       className="relative overflow-hidden py-24 sm:py-32"
     >
-      {/* Background video — full-bleed, behind all content */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="none"
+      {/* Background video — full-bleed on md+, a fixed-height full-width stage
+          on mobile so the whole 10s scene stays in frame */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[55vh] md:inset-0 md:h-full"
+      >
+        <BackgroundVideo
+          src="/videos/robot-presenting.mp4"
           poster="/videos/robot-presenting-poster.jpg"
-          className="absolute inset-0 h-full w-full object-cover"
-        >
-          {videoSrc && <source src={videoSrc} type="video/mp4" />}
-        </video>
+          className="absolute inset-0 h-full w-full object-cover object-[50%_45%]"
+        />
+        {/* Mobile-only bottom fade — blends the video stage into the dark
+            section below (no hard cut at the 55vh boundary) */}
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent md:hidden" />
       </div>
 
       {/* Dark overlay — same density as Features so the two sections read as
           one continuous rhythm (no jarring brightness jump) */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/45 to-black/70"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/55"
       />
 
       {/* Edge fades — blend into Features above and Testimonials below */}

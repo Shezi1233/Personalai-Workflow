@@ -366,7 +366,7 @@
   .glass-surface {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background-color: rgba(15, 18, 30, 0.72);
+    background-color: rgba(12, 15, 28, 0.45);
   }
 }
 
