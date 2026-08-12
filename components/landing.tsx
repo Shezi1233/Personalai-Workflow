@@ -344,10 +344,6 @@ function About() {
   const statsRef = useRef<HTMLDivElement>(null);
   const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
 
-  /* Photo flip loops only while the section is on/near screen. */
-  const flipInView = useInView(sectionRef, { margin: "100px" });
-  const flipActive = !reduceMotion && flipInView;
-
   return (
     <section
       id="about"
@@ -370,7 +366,7 @@ function About() {
         />
 
         <div className="mt-16 grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
-          {/* Profile photo — animated RGB border + 3D flip */}
+          {/* Profile photo — static, with animated RGB border ring */}
           <Reveal className="relative">
             <div className="relative mx-auto w-full max-w-sm">
               {/* Soft glow — blurred conic behind, so the ring looks like it
@@ -384,67 +380,19 @@ function About() {
                 }}
               />
               {/* Rotating RGB border ring — conic gradient cycling 360° (~5s).
-                  Stays outside the flip, so it's always visible. */}
+                  Shows around the edge of the photo frame. */}
               <div className="relative overflow-hidden rounded-[calc(1.375rem+3px)] p-[3px] shadow-[0_24px_70px_-20px_rgba(0,0,0,0.85)]">
                 <div aria-hidden className="rgb-border-ring absolute inset-0 z-0" />
-                {/* Inner 3D flip — front: photo, back: MS logo badge.
-                    The glass frame provides opaque backing so the RGB ring
-                    shows only around the edge, with a small gap. */}
-                <div className="relative z-10 rounded-3xl bg-background p-2 [perspective:1200px] [container-type:inline-size]">
-                  <motion.div
-                    style={{ transformStyle: "preserve-3d" }}
-                    animate={
-                      flipActive
-                        ? { rotateY: [0, 180, 180, 360] }
-                        : { rotateY: 0 }
-                    }
-                    transition={{
-                      duration: 6,
-                      times: [0, 0.17, 0.55, 1],
-                      ease: "easeInOut",
-                      repeat: flipActive ? Infinity : 0,
-                      repeatDelay: 0,
-                    }}
-                    className="relative aspect-[4/5] w-full [transform-style:preserve-3d]"
-                  >
-                    {/* Front — the photo */}
-                    <div
-                      className="absolute inset-0 overflow-hidden rounded-2xl [backface-visibility:hidden]"
-                    >
-                      <img
-                        src="/images/profile.png"
-                        alt="Malik Shahzad — Full-Stack Developer & AI Engineer"
-                        className="aspect-[4/5] w-full object-cover"
-                      />
-                    </div>
-
-                    {/* Back — frosted-glass plaque lit by shifting RGB glow,
-                        with the <MS/> logo cycling through the color spectrum */}
-                    <div className="absolute inset-0 overflow-hidden rounded-2xl border border-white/15 bg-white/[0.05] backdrop-blur-xl [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                      {/* Ambient RGB glow blobs — drift slowly behind the logo,
-                          shifting purple → blue → cyan → magenta */}
-                      <div aria-hidden className="absolute -inset-6">
-                        <div className="flip-glow-a absolute left-[8%] top-[10%] h-[45%] w-[45%] rounded-full bg-violet-500/60 blur-2xl" />
-                        <div className="flip-glow-b absolute right-[6%] top-[20%] h-[40%] w-[40%] rounded-full bg-blue-500/55 blur-2xl" />
-                        <div className="flip-glow-c absolute bottom-[8%] left-[20%] h-[42%] w-[42%] rounded-full bg-cyan-400/50 blur-2xl" />
-                        <div className="flip-glow-d absolute bottom-[14%] right-[14%] h-[38%] w-[38%] rounded-full bg-pink-500/50 blur-2xl" />
-                      </div>
-
-                      {/* The <MS/> logo — large, centered, hue-rotating RGB.
-                          The source PNG has a black background baked in, so
-                          mix-blend-screen makes black invisible against the
-                          dark glass card while the logo lines stay visible.
-                          No drop-shadow: on an opaque image it would follow the
-                          full rectangle and draw a glowing box. */}
-                      <div className="relative flex h-full w-full items-center justify-center p-6">
-                        <img
-                          src="/images/ms-logo.png"
-                          alt="Malik Shahzad logo"
-                          className="flip-logo h-auto w-[78%] select-none object-contain mix-blend-screen"
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
+                {/* Inner glass frame — opaque backing so the RGB ring shows
+                    only around the edge, with a small gap. */}
+                <div className="relative rounded-3xl bg-background p-2">
+                  <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl">
+                    <img
+                      src="/images/profile.png"
+                      alt="Malik Shahzad — Full-Stack Developer & AI Engineer"
+                      className="aspect-[4/5] w-full object-cover"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
