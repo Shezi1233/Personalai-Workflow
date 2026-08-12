@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import ChatWidget from "@/components/ui/chat-widget";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nexus Studio — Build Your Dreams",
+  title: "Malik Shahzad — Full-Stack Developer & AI Engineer",
   description:
-    "AI-powered creativity for the next generation. Professional UI/UX design, development, and product launches.",
+    "Full-stack developer & AI engineer in Karachi, Pakistan. Building RAG chatbots, AI voice agents, and autonomous agents with Next.js, Python, and Neon PostgreSQL.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -24,7 +25,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        {/* Floating RAG chatbot — bottom-right on every page */}
+        <ChatWidget />
+      </body>
     </html>
   );
 }

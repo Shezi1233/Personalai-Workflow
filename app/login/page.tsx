@@ -1,5 +1,5 @@
-import SignInCard2 from "@/components/ui/sign-in-card-2";
+import AnimatedAuth from "@/components/ui/animated-auth";
 
 export default function LoginPage() {
-  return <SignInCard2 />;
+  return <AnimatedAuth initialMode="login" />;
 }

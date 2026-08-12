@@ -51,7 +51,7 @@ export function RobotVideoSection() {
       ref={sectionRef}
       id="robot-video-section"
       className="relative h-[100svh] min-h-[560px] w-full overflow-hidden bg-black lg:h-[120vh]"
-      aria-label="Meet your AI workforce"
+      aria-label="Building the future with AI"
     >
       {/* Video background — full-bleed, no box, no radius, blends into black.
           object-position keeps the robot's head (top of frame) in view even
@@ -86,14 +86,14 @@ export function RobotVideoSection() {
           className="max-w-2xl"
         >
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-400">
-            Your AI team
+            AI & Automation
           </p>
           <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Meet your <span className="glitch-text">AI workforce</span>
+            Building the <span className="glitch-text">future with AI</span>
           </h2>
           <p className="mt-5 max-w-xl text-base text-slate-300 sm:text-lg">
-            Digital workers that design, build, and ship around the clock —
-            trained on your brand, your data, your rules.
+            RAG chatbots, AI voice agents, and autonomous agents engineered to
+            think, learn, and automate real work.
           </p>
         </motion.div>
       </div>

@@ -21,19 +21,27 @@ import { SplineScene } from "./splite";
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
 type HeroFuturisticProps = {
+  eyebrow?: string;
   headline?: string;
   accentWord?: string;
+  gradientLine?: string;
   subtitle?: string;
   primaryCta?: string;
   secondaryCta?: string;
+  primaryCtaHref?: string;
+  secondaryCtaHref?: string;
 };
 
 const defaultProps: HeroFuturisticProps = {
-  headline: "Ready to build something extraordinary?",
-  accentWord: "extraordinary",
-  subtitle: "AI-powered creativity for the next generation.",
-  primaryCta: "Book a free consult",
-  secondaryCta: "See what's possible",
+  eyebrow: "Available for work",
+  headline: "Hi, I'm Malik Shahzad",
+  gradientLine: "Full-Stack Developer & AI Engineer",
+  subtitle:
+    "Full-stack developer specializing in Next.js, Tailwind CSS, Python, and Neon PostgreSQL — with a growing focus on AI. Building RAG chatbots, AI voice agents, and autonomous AI agents.",
+  primaryCta: "View My Work",
+  secondaryCta: "Download CV",
+  primaryCtaHref: "#projects",
+  secondaryCtaHref: "/resume.pdf",
 };
 
 /* ------------------------------------------------------------------ */
@@ -140,17 +148,119 @@ function TiltButton({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Typewriter — cycles through roles as "I am a <role>…"               */
+/* ------------------------------------------------------------------ */
+const TYPED_ROLES = [
+  "Full-Stack Developer",
+  "RAG Chatbot Creator",
+  "YouTube Viral Shorts Creator",
+  "Amazon Ebooks Creator",
+  "Amazon Viral Coloring Book Creator",
+  "Canva Editor",
+  "CapCut Editor",
+  "Automation Agents Builder",
+];
+
+/* Widest string reserves the line's height, so short roles never make the
+   subtitle / CTAs below jump as the text length changes. */
+const LONGEST_ROLE = TYPED_ROLES.reduce((a, b) =>
+  b.length > a.length ? b : a
+);
+
+function Typewriter() {
+  const reduce = useReducedMotion();
+  const [started, setStarted] = useState(false);
+  const [roleIndex, setRoleIndex] = useState(0);
+  const [len, setLen] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  const [paused, setPaused] = useState(false);
+
+  /* One re-scheduled timer drives type → pause → delete → next role.
+     Typing ~60ms/char, deleting ~35ms/char, hold ~1.8s when complete.
+     Starts ~1s after mount so the fade-in entrance finishes first. */
+  useEffect(() => {
+    if (reduce) return;
+
+    if (!started) {
+      const id = setTimeout(() => setStarted(true), 1000);
+      return () => clearTimeout(id);
+    }
+
+    const current = TYPED_ROLES[roleIndex];
+    const delay = paused ? 1800 : deleting ? 35 : 60;
+
+    const id = setTimeout(() => {
+      if (paused) {
+        setPaused(false);
+        setDeleting(true);
+      } else if (!deleting) {
+        const next = len + 1;
+        setLen(next);
+        if (next === current.length) setPaused(true);
+      } else {
+        const next = len - 1;
+        setLen(next);
+        if (next === 0) {
+          setDeleting(false);
+          setRoleIndex((r) => (r + 1) % TYPED_ROLES.length);
+        }
+      }
+    }, delay);
+
+    return () => clearTimeout(id);
+  }, [reduce, started, roleIndex, len, deleting, paused]);
+
+  const displayRole = reduce
+    ? TYPED_ROLES[0]
+    : TYPED_ROLES[roleIndex].slice(0, len);
+
+  return (
+    <>
+      {/* The cycling text is decorative — hidden from screen readers. The
+          full static role list is exposed via the sr-only line below. */}
+      <div className="grid" aria-hidden="true">
+        {/* Invisible spacer of the widest role — reserves exactly the height
+            the line can reach at any breakpoint, so nothing below jumps. */}
+        <p className="col-start-1 row-start-1 invisible text-xl font-medium sm:text-2xl lg:text-3xl">
+          I am a {LONGEST_ROLE}
+        </p>
+        <p className="col-start-1 row-start-1 text-xl font-medium sm:text-2xl lg:text-3xl">
+          <span className="text-slate-300">I am a&nbsp;</span>
+          <span className="typewriter-role">{displayRole}</span>
+          <motion.span
+            className="typewriter-cursor ml-0.5"
+            animate={reduce ? undefined : { opacity: [1, 0, 1] }}
+            transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+          >
+            |
+          </motion.span>
+        </p>
+      </div>
+      <span className="sr-only">
+        I am a Full-Stack Developer, RAG Chatbot Creator, YouTube Viral Shorts
+        Creator, Amazon Ebooks Creator, Amazon Viral Coloring Book Creator,
+        Canva Editor, CapCut Editor, and Automation Agents Builder.
+      </span>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Hero — two columns: copy (60%) + Spline 3D scene (40%)             */
 /* ------------------------------------------------------------------ */
 const SPLINE_SCENE_URL =
   "https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode";
 
 const HeroFuturistic = ({
+  eyebrow = defaultProps.eyebrow,
   headline = defaultProps.headline,
   accentWord = defaultProps.accentWord,
+  gradientLine = defaultProps.gradientLine,
   subtitle = defaultProps.subtitle,
   primaryCta = defaultProps.primaryCta,
   secondaryCta = defaultProps.secondaryCta,
+  primaryCtaHref = defaultProps.primaryCtaHref,
+  secondaryCtaHref = defaultProps.secondaryCtaHref,
 }: HeroFuturisticProps) => {
   const reduceMotion = useReducedMotion();
   const motionEnabled = !reduceMotion;
@@ -374,7 +484,7 @@ const HeroFuturistic = ({
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
                   </span>
-                  Next-level studio
+                  {eyebrow}
                 </motion.div>
 
                 <motion.h1
@@ -384,11 +494,20 @@ const HeroFuturistic = ({
                   {headStart}
                   {hasAccent && <span className="glitch-text">{accentWord}</span>}
                   {headRest}
+                  {gradientLine ? (
+                    <span className="mt-2 block glitch-text lg:mt-3">
+                      {gradientLine}
+                    </span>
+                  ) : null}
                 </motion.h1>
+
+                <motion.div variants={itemVariants} className="mt-3">
+                  <Typewriter />
+                </motion.div>
 
                 <motion.p
                   variants={itemVariants}
-                  className="mt-6 max-w-xl text-base font-medium text-slate-300 sm:text-lg lg:text-xl"
+                  className="mt-4 max-w-xl text-base font-medium text-slate-300 sm:text-lg lg:text-xl"
                 >
                   {subtitle}
                 </motion.p>
@@ -398,13 +517,13 @@ const HeroFuturistic = ({
                   className="pointer-events-auto mt-10 flex flex-col items-start gap-4 sm:flex-row"
                 >
                   <TiltButton
-                    href="#contact"
+                    href={primaryCtaHref ?? "#projects"}
                     label={primaryCta}
                     variant="primary"
                     withArrow
                   />
                   <TiltButton
-                    href="#features"
+                    href={secondaryCtaHref ?? "/resume.pdf"}
                     label={secondaryCta}
                     variant="outline"
                   />
@@ -437,7 +556,7 @@ const HeroFuturistic = ({
         style={{ animationDelay: "2.2s" }}
         onClick={() =>
           document
-            .getElementById("showcase")
+            .getElementById("projects")
             ?.scrollIntoView({ behavior: "smooth" })
         }
       >

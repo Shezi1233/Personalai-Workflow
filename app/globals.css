@@ -200,6 +200,197 @@
   }
 }
 
+/* Typewriter role line — vivid RGB gradient (red → gold → green → blue →
+   purple), animated like the heading's glitch text so the cycling roles
+   clearly read as the "live" element. */
+.typewriter-role {
+  background: linear-gradient(
+    90deg,
+    #ff2d78 0%,
+    #ff8a00 22%,
+    #ffd60a 40%,
+    #00e5a0 60%,
+    #00b3ff 80%,
+    #a855f7 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: gradientShift 9s linear infinite;
+}
+
+/* Blinking caret — white with a soft glow so it reads clearly against the
+   colorful role text without fighting it. */
+.typewriter-cursor {
+  color: #f8fafc;
+  font-weight: 400;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+}
+
+/* ============================================
+   Marquee — infinite right-to-left divider
+   ============================================ */
+.marquee-track {
+  /* ONE continuous animation — never restarts/resets. Speed is driven by the
+     custom property, so hover only eases the duration with zero jump. */
+  animation: marquee-scroll var(--marquee-duration, 60s) linear infinite;
+  will-change: transform;
+}
+
+/* Slow to ~50% speed on hover (desktop only) — same keyframes, same
+   direction, the browser continues from the current position. */
+@media (hover: hover) {
+  .marquee-track:hover {
+    --marquee-duration: 120s;
+  }
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+/* Marquee item text — animated RGB gradient. Applied as a real CSS class
+   (not inline arbitrary props) so background-clip:text is never reset by the
+   background shorthand — every item renders identically, no bg box. Reuses
+   the gradientShift keyframes already defined for .glitch-text. */
+.marquee-text {
+  background: linear-gradient(
+    90deg,
+    #a855f7 0%,
+    #3b82f6 25%,
+    #22d3ee 50%,
+    #ec4899 75%,
+    #a855f7 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: gradientShift 6s linear infinite;
+}
+
+/* Flip-back logo — continuous RGB color cycling via hue-rotate */
+.flip-logo {
+  animation: logo-hue 7s linear infinite;
+}
+
+@keyframes logo-hue {
+  from {
+    filter: hue-rotate(0deg);
+  }
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
+/* ============================================
+   About — animated RGB border on the profile photo
+   ============================================ */
+
+/* Animated custom property — lets the conic gradient's start angle rotate
+   smoothly without transforming the (rounded-rect) element itself. */
+@property --border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* Rotating conic gradient — site accents + a couple of vibrant additions.
+   The angle animates 0 → 360deg continuously (~5s, linear). */
+.rgb-border-ring {
+  background: conic-gradient(
+    from var(--border-angle),
+    #a855f7 0deg,
+    #3b82f6 90deg,
+    #22d3ee 180deg,
+    #ec4899 270deg,
+    #a855f7 360deg
+  );
+  animation: border-rotate 5s linear infinite;
+}
+
+@keyframes border-rotate {
+  to {
+    --border-angle: 360deg;
+  }
+}
+
+/* Flip-back — ambient RGB glow blobs drifting behind the glass monogram.
+   Slow, subtle: position/opacity shift on a 6.5–8s loop. */
+.flip-glow-a {
+  animation: flip-glow-a 7s ease-in-out infinite;
+}
+@keyframes flip-glow-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate(14%, -12%) scale(1.25);
+    opacity: 0.95;
+  }
+}
+
+.flip-glow-b {
+  animation: flip-glow-b 8s ease-in-out infinite;
+}
+@keyframes flip-glow-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1.05);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-16%, 10%) scale(0.9);
+    opacity: 0.9;
+  }
+}
+
+.flip-glow-c {
+  animation: flip-glow-c 6.5s ease-in-out infinite;
+}
+@keyframes flip-glow-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate(10%, 14%) scale(1.2);
+    opacity: 0.85;
+  }
+}
+
+.flip-glow-d {
+  animation: flip-glow-d 7.5s ease-in-out infinite;
+}
+@keyframes flip-glow-d {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-10%, -14%) scale(1.15);
+    opacity: 0.9;
+  }
+}
+
 /* Scroll-to-explore button */
 .explore-btn {
   position: absolute;
@@ -376,7 +567,14 @@
   .fade-in-subtitle,
   .explore-btn,
   .arrow-svg,
-  .glitch-text {
+  .glitch-text,
+  .rgb-border-ring,
+  .marquee-text,
+  .flip-glow-a,
+  .flip-glow-b,
+  .flip-glow-c,
+  .flip-glow-d,
+  .flip-logo {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
